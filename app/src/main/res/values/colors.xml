@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="Danger1">#FF0000</color>
+    <color name="Danger2">#eb3600</color>
+    <color name="Danger3">#e54800</color>
+    <color name="Danger4">#d86d00</color>
+    <color name="Danger5">#d27f00</color>
+    <color name="Danger6">#c5a300</color>
+    <color name="Danger7">#b9c800</color>
+    <color name="Danger8">#a6ff00</color>
+</resources>
