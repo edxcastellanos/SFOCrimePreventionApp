@@ -3,9 +3,6 @@ package edx.sfc.util;
 import java.util.Comparator;
 import java.util.Map;
 
-/**
- * Created by edx on 10/02/2016.
- */
 public class ValueComparator implements Comparator<String> {
     Map<String, Integer> map;
 
