@@ -1,6 +1,7 @@
 package com.edx.sfc.sanfranciscocrime;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -64,8 +65,9 @@ public class MapFragment extends Fragment {
         int requestCode = 10;
         Dialog dialog = GooglePlayServicesUtil.getErrorDialog(status, this.getActivity(), requestCode);
         if (status != ConnectionResult.SUCCESS) {
-            dialog.setTitle("Google Play Services Are not Available");
-            dialog.show();
+            Intent intent = new Intent(this.getContext(), MessageActivity.class);
+            intent.putExtra("message", "Please install Google Play Services to use this application");
+            startActivity(intent);
         } else {
             mapView = (MapView) v.findViewById(R.id.mapView);
             mapView.onCreate(savedInstanceState);
@@ -173,22 +175,22 @@ public class MapFragment extends Fragment {
                     super.onPostExecute(result);
                 }
             }.execute(urlStr);
+
+            try {
+                MapsInitializer.initialize(this.getActivity());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //San Francisco location point
+            double latitude = 37.766710;
+            double longitude = -122.42507;
+            //Map location update
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12);
+            map.animateCamera(cameraUpdate);
+            return v;
         }
-
-        try {
-            MapsInitializer.initialize(this.getActivity());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //San Francisco location point
-        double latitude = 37.766710;
-        double longitude = -122.42507;
-        //Map location update
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12);
-        map.animateCamera(cameraUpdate);
-
-        return v;
+        return null;
     }
 
     public static TreeMap<String, Integer> sortByValue(Map<String, Integer> unsorted) {

@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.edx.sfc.sanfranciscocrime">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true"/>
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -14,23 +14,31 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAQlnQ7m69Rpdy35i0xeZNPOMz51BecSuQ" />
 
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyAQlnQ7m69Rpdy35i0xeZNPOMz51BecSuQ"/>
-
-        <activity android:name="com.edx.sfc.sanfranciscocrime.MainActivity"
-            android:label="@string/app_name"
-            android:configChanges="keyboardHidden|orientation|screenSize">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT"/>
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="com.edx.sfc.sanfranciscocrime.SplashScreen">
+        <activity android:name=".SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MessageActivity"
+            android:label="@string/title_activity_message"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
