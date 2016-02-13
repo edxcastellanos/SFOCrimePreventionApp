@@ -1,4 +1,4 @@
-package edx.sfc.sanfranciscocrime;
+package com.edx.sfc.sanfranciscocrime;
 
 import android.app.Activity;
 import android.content.Intent;

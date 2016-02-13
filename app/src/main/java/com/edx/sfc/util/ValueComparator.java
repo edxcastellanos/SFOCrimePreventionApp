@@ -1,4 +1,4 @@
-package edx.sfc.util;
+package com.edx.sfc.util;
 
 import java.util.Comparator;
 import java.util.Map;

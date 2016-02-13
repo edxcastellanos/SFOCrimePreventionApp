@@ -1,4 +1,4 @@
-package edx.sfc.sanfranciscocrime;
+package com.edx.sfc.sanfranciscocrime;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

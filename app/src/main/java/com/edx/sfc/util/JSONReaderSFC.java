@@ -1,6 +1,9 @@
-package edx.sfc.util;
+package com.edx.sfc.util;
 
 import android.util.Log;
+
+import com.edx.sfc.objects.Crime;
+import com.edx.sfc.objects.CrimeLocation;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -8,9 +11,6 @@ import org.json.JSONObject;
 
 import java.util.Calendar;
 import java.util.Date;
-
-import edx.sfc.objects.Crime;
-import edx.sfc.objects.CrimeLocation;
 
 public class JSONReaderSFC {
     public static Crime[] readSFCCrimes(String jsonStr) {
@@ -37,7 +37,7 @@ public class JSONReaderSFC {
                 cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateStr.split("-")[2]));
                 cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeStr.split(":")[0]));
                 cal.set(Calendar.MINUTE, Integer.parseInt(timeStr.split(":")[1]));
-                Date dateFromCalendar= cal.getTime();
+                Date dateFromCalendar = cal.getTime();
 
                 crimes[i] = new Crime();
                 crimes[i].setLocation(cl);

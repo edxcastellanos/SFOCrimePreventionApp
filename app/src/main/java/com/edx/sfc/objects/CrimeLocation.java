@@ -1,4 +1,4 @@
-package edx.sfc.objects;
+package com.edx.sfc.objects;
 
 public class CrimeLocation {
     private double longitude;

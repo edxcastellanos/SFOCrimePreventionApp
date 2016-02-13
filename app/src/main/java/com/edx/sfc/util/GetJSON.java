@@ -1,4 +1,4 @@
-package edx.sfc.util;
+package com.edx.sfc.util;
 
 import android.app.ProgressDialog;
 import android.content.Context;
