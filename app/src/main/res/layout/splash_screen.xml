@@ -6,6 +6,7 @@
     >
 
     <ImageView
+        android:contentDescription="@string/splashImage"
         android:src="@drawable/splash_screen"
         android:layout_width="fill_parent"
         android:id="@+id/splashImageView"
