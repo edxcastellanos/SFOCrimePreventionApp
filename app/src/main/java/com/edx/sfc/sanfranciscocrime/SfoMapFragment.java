@@ -9,7 +9,6 @@ import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -120,29 +119,29 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                         for (String key : mostCrimesDistrictMap.keySet()) {
                             switch (danger) {
                                 case 1:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger1));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger1));
                                     break;
                                 case 2:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger2));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger2));
                                     break;
                                 case 3:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger3));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger3));
                                     break;
                                 case 4:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger4));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger4));
                                     break;
                                 case 5:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger5));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger5));
                                     break;
                                 case 6:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger6));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger6));
                                     break;
                                 case 7:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger7));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger7));
                                     break;
                                 case 8:
                                 default:
-                                    districtsColor.put(key, ContextCompat.getColor(getActivity(), R.color.Danger8));
+                                    districtsColor.put(key, getResources().getColor(R.color.Danger8));
                                     break;
                             }
                             danger++;
