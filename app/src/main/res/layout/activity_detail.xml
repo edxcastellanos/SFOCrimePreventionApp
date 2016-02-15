@@ -1,0 +1,21 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.edx.sfc.sanfranciscocrime.DetailActivity">
+
+    <TextView
+        android:id="@+id/tvIncidntDetailTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/IncidentDetail"
+        android:textSize="25sp" />
+
+    <ListView
+        android:id="@+id/incidentList"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/tvIncidntDetailTitle"
+        android:paddingTop="20sp"/>
+
+</RelativeLayout>

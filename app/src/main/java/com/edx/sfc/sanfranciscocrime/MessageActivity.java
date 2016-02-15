@@ -1,6 +1,7 @@
 package com.edx.sfc.sanfranciscocrime;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -15,10 +16,15 @@ public class MessageActivity extends Activity {
         Intent intent = getIntent();
         String message = intent.getStringExtra("message");
 
-        TextView tv = (TextView) findViewById(R.id.tvMessage);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message);
+        builder.setTitle("Error");
 
-        tv.setText(message);
+        AlertDialog dialog = builder.create();
+        dialog.show();
 
+        TextView tvMessage = (TextView) findViewById(R.id.tvMessage);
+        tvMessage.setText(message);
     }
 
 }

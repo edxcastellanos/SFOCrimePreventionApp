@@ -19,8 +19,6 @@ import com.edx.sfc.objects.Crime;
 import com.edx.sfc.util.GetJSON;
 import com.edx.sfc.util.ParseJSON;
 import com.edx.sfc.util.ValueComparator;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,22 +42,12 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.map_fragment, container, false);
 
-        //Validate Google Play Services to show maps
-        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
-        int status = googleAPI.isGooglePlayServicesAvailable(getActivity());
-        if (status != ConnectionResult.SUCCESS) {
-            Intent intent = new Intent(getActivity(), MessageActivity.class);
-            intent.putExtra("message", "Please install Google Play Services to use this application");
-            startActivity(intent);
-        } else {
-            MapFragment mapFragment = new MapFragment();
-            FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-            transaction.add(R.id.mapView, mapFragment).commit();
-            mapFragment.getMapAsync(this);
+        MapFragment mapFragment = new MapFragment();
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        transaction.add(R.id.mapView, mapFragment).commit();
+        mapFragment.getMapAsync(this);
 
-            return v;
-        }
-        return null;
+        return v;
     }
 
     public static TreeMap<String, Integer> sortByValue(Map<String, Integer> unsorted) {
@@ -159,64 +147,67 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
 
                         float[] hsv = new float[3];
                         DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", java.util.Locale.getDefault());
-
-                        for (Crime crime : crimes) {
-                            try {
+                        try {
+                            for (Crime crime : crimes) {
                                 Color.colorToHSV(districtsColor.get(crime.getPdDistrict()), hsv);
+                                googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+                                    @Override
+                                    public View getInfoWindow(Marker marker) {
+                                        return null;
+                                    }
 
+                                    @Override
+                                    public View getInfoContents(Marker marker) {
+                                        LinearLayout infoLayout = new LinearLayout(getActivity());
+                                        infoLayout.setOrientation(LinearLayout.VERTICAL);
+
+                                        TextView tvTitle = new TextView(getActivity());
+                                        tvTitle.setTextColor(Color.BLACK);
+                                        tvTitle.setTypeface(null, Typeface.BOLD);
+                                        tvTitle.setText(marker.getTitle());
+
+                                        TextView tvSnippet = new TextView(getActivity());
+                                        tvSnippet.setTextColor(Color.GRAY);
+                                        tvSnippet.setText(marker.getSnippet());
+
+                                        Button btnCheckDetail = new Button(getActivity());
+                                        btnCheckDetail.setText(R.string.button_detail_text);
+
+                                        infoLayout.addView(tvTitle);
+                                        infoLayout.addView(tvSnippet);
+                                        infoLayout.addView(btnCheckDetail);
+
+                                        return infoLayout;
+                                    }
+
+                                });
                                 googleMap.addMarker(new MarkerOptions()
-                                        .position(new LatLng(crime.getLocation().getLatitude(), crime.getLocation().getLongitude()))
-                                        .title("District\t\t\t\t: " + crime.getPdDistrict()
-                                                + "\nDescription\t: " + crime.getDescript())
-                                        .icon(BitmapDescriptorFactory.defaultMarker(hsv[0]))
-                                        .snippet("Inc Number\t:" + crime.getIncidntNumber()
-                                                + "\nCategory\t\t\t: " + crime.getCategory()
-                                                + "\nDate\t\t\t\t\t: " + df.format(crime.getDatetime())
-                                                + "\nAddress\t\t\t: " + crime.getAddress()
-                                                + "\nDay Week\t\t: " + crime.getDayOfWeek()
-                                                + "\nResolution\t\t: " + crime.getResolution()
-                                                + "\nLatitude\t\t\t: " + crime.getLocation().getLatitude()
-                                                + "\nLongitude\t\t: " + crime.getLocation().getLongitude()));
+                                                .position(new LatLng(crime.getLocation().getLatitude(), crime.getLocation().getLongitude()))
+                                                .title("District\t\t\t\t: " + crime.getPdDistrict()
+                                                        + "\nDescription\t: " + crime.getDescript())
+                                                .icon(BitmapDescriptorFactory.defaultMarker(hsv[0]))
+                                                .snippet("Inc Number\t:" + crime.getIncidntNumber()
+                                                        + "\nCategory\t\t\t: " + crime.getCategory()
+                                                        + "\nDate\t\t\t\t\t: " + df.format(crime.getDatetime()))
+                                                .alpha(.8f)
+                                );
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                                googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                                    @Override
+                                    public void onInfoWindowClick(Marker marker) {
+                                        Intent intent = new Intent(getActivity(), DetailActivity.class);
+                                        intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
+                                        startActivity(intent);
+                                    }
+                                });
                             }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
                 }.execute(result);
                 super.onPostExecute(result);
             }
         }.execute(urlStr);
-
-        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-            @Override
-            public View getInfoWindow(Marker marker) {
-                return null;
-            }
-
-            @Override
-            public View getInfoContents(Marker marker) {
-                LinearLayout infoLayout = new LinearLayout(getActivity());
-                infoLayout.setOrientation(LinearLayout.VERTICAL);
-
-                TextView tvTitle = new TextView(getActivity());
-                tvTitle.setTextColor(Color.BLACK);
-                tvTitle.setTypeface(null, Typeface.BOLD);
-                tvTitle.setText(marker.getTitle());
-
-                TextView tvSnippet = new TextView(getActivity());
-                tvSnippet.setTextColor(Color.GRAY);
-                tvSnippet.setText(marker.getSnippet());
-
-                Button btnCheckDetail = new Button(getActivity());
-                btnCheckDetail.setText(R.string.button_detail_text);
-
-                infoLayout.addView(tvTitle);
-                infoLayout.addView(tvSnippet);
-                infoLayout.addView(btnCheckDetail);
-
-                return infoLayout;
-            }
-        });
     }
 }
