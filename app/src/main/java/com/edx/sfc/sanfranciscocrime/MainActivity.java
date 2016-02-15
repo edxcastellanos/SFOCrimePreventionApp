@@ -11,11 +11,38 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
 public class MainActivity extends AppCompatActivity {
+    private boolean startMainActivity = false;
+
+/*  public static final int MY_INTERNET_PERMISSION_GRANTED = 7;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_INTERNET_PERMISSION_GRANTED: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        checkStartActivity
+                } else {
+                    Intent intent = new Intent(this, MessageActivity.class);
+                    intent.putExtra("message", "Please give Internet Permission");
+                    startActivity(intent);
+                }
+            }
+        }
+    }
+*/
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        boolean startMainActivity = false;
 
+        //Request permission
+        /*if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, MY_INTERNET_PERMISSION_GRANTED);
+        }*/
+        checkStartActivity();
+    }
+
+    public void checkStartActivity() {
         //Validate Internet Connection
         boolean showNoInternetMessage = false;
         Context ctx = this;

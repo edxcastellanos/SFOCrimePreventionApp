@@ -2,9 +2,12 @@ package com.edx.sfc.sanfranciscocrime;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -195,9 +198,28 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                                 googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                                     @Override
                                     public void onInfoWindowClick(Marker marker) {
-                                        Intent intent = new Intent(getActivity(), DetailActivity.class);
-                                        intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
-                                        startActivity(intent);
+                                        boolean showNoInternetMessage = false;
+                                        ConnectivityManager conMgr = (ConnectivityManager) getActivity()
+                                                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+                                        NetworkInfo i = conMgr.getActiveNetworkInfo();
+                                        if (i == null) {
+                                            showNoInternetMessage = true;
+                                        } else {
+                                            if (!i.isConnected())
+                                                showNoInternetMessage = true;
+                                            if (!i.isAvailable())
+                                                showNoInternetMessage = true;
+                                        }
+                                        if (showNoInternetMessage) {
+                                            Intent intent = new Intent(getActivity(), MessageActivity.class);
+                                            intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
+                                            startActivity(intent);
+                                        } else {
+                                            Intent intent = new Intent(getActivity(), DetailActivity.class);
+                                            intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
+                                            startActivity(intent);
+                                        }
                                     }
                                 });
                             }
