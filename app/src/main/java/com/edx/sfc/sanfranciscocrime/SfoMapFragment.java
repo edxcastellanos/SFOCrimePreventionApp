@@ -27,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -83,6 +84,37 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
         googleMap.getUiSettings().setMapToolbarEnabled(false);
         googleMap.getUiSettings().setCompassEnabled(false);
         googleMap.getUiSettings().setIndoorLevelPickerEnabled(false);
+        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                LinearLayout infoLayout = new LinearLayout(getActivity());
+                infoLayout.setOrientation(LinearLayout.VERTICAL);
+
+                TextView tvTitle = new TextView(getActivity());
+                tvTitle.setTextColor(Color.BLACK);
+                tvTitle.setTypeface(null, Typeface.BOLD);
+                tvTitle.setText(marker.getTitle());
+
+                TextView tvSnippet = new TextView(getActivity());
+                tvSnippet.setTextColor(Color.GRAY);
+                tvSnippet.setText(marker.getSnippet());
+
+                Button btnCheckDetail = new Button(getActivity());
+                btnCheckDetail.setText(R.string.button_detail_text);
+
+                infoLayout.addView(tvTitle);
+                infoLayout.addView(tvSnippet);
+                infoLayout.addView(btnCheckDetail);
+
+                return infoLayout;
+            }
+        });
+
         //San Francisco location point
         double latitude = 37.766710;
         double longitude = -122.42507;
@@ -102,7 +134,8 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
         System.out.println("startDate: " + startDateStr);
         System.out.println("todayDate: " + todayDateStr);
 
-        String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27" + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=50000";
+        String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27"
+                + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=50000";
 
         new GetJSON(getActivity()) {
             @Override
@@ -146,89 +179,100 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                             }
                             danger++;
                         }
-
-                        float[] hsv = new float[3];
-                        DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", java.util.Locale.getDefault());
-                        try {
-                            for (Crime crime : crimes) {
-                                Color.colorToHSV(districtsColor.get(crime.getPdDistrict()), hsv);
-                                googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-                                    @Override
-                                    public View getInfoWindow(Marker marker) {
-                                        return null;
-                                    }
-
-                                    @Override
-                                    public View getInfoContents(Marker marker) {
-                                        LinearLayout infoLayout = new LinearLayout(getActivity());
-                                        infoLayout.setOrientation(LinearLayout.VERTICAL);
-
-                                        TextView tvTitle = new TextView(getActivity());
-                                        tvTitle.setTextColor(Color.BLACK);
-                                        tvTitle.setTypeface(null, Typeface.BOLD);
-                                        tvTitle.setText(marker.getTitle());
-
-                                        TextView tvSnippet = new TextView(getActivity());
-                                        tvSnippet.setTextColor(Color.GRAY);
-                                        tvSnippet.setText(marker.getSnippet());
-
-                                        Button btnCheckDetail = new Button(getActivity());
-                                        btnCheckDetail.setText(R.string.button_detail_text);
-
-                                        infoLayout.addView(tvTitle);
-                                        infoLayout.addView(tvSnippet);
-                                        infoLayout.addView(btnCheckDetail);
-
-                                        return infoLayout;
-                                    }
-
-                                });
-                                googleMap.addMarker(new MarkerOptions()
-                                                .position(new LatLng(crime.getLocation().getLatitude(), crime.getLocation().getLongitude()))
-                                                .title("District\t\t\t\t: " + crime.getPdDistrict()
-                                                        + "\nDescription\t: " + crime.getDescript())
-                                                .icon(BitmapDescriptorFactory.defaultMarker(hsv[0]))
-                                                .snippet("Inc Number\t:" + crime.getIncidntNumber()
-                                                        + "\nCategory\t\t\t: " + crime.getCategory()
-                                                        + "\nDate\t\t\t\t\t: " + df.format(crime.getDatetime()))
-                                                .alpha(.8f)
-                                );
-
-                                googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-                                    @Override
-                                    public void onInfoWindowClick(Marker marker) {
-                                        boolean showNoInternetMessage = false;
-                                        ConnectivityManager conMgr = (ConnectivityManager) getActivity()
-                                                .getSystemService(Context.CONNECTIVITY_SERVICE);
-
-                                        NetworkInfo i = conMgr.getActiveNetworkInfo();
-                                        if (i == null) {
-                                            showNoInternetMessage = true;
-                                        } else {
-                                            if (!i.isConnected())
-                                                showNoInternetMessage = true;
-                                            if (!i.isAvailable())
-                                                showNoInternetMessage = true;
-                                        }
-                                        if (showNoInternetMessage) {
-                                            Intent intent = new Intent(getActivity(), MessageActivity.class);
-                                            intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
-                                            startActivity(intent);
-                                        } else {
-                                            Intent intent = new Intent(getActivity(), DetailActivity.class);
-                                            intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
-                                            startActivity(intent);
-                                        }
-                                    }
-                                });
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        PopulateMap(googleMap, districtsColor);
                     }
                 }.execute(result);
                 super.onPostExecute(result);
             }
         }.execute(urlStr);
+    }
+
+    public void PopulateMap(final GoogleMap googleMap, final HashMap<String, Integer> districtsColor) {
+        googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            int offset=0;
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+                Date today = new Date();
+
+                java.util.Calendar cal = GregorianCalendar.getInstance();
+                cal.setTime(today);
+                cal.add(GregorianCalendar.DAY_OF_YEAR, -30);//retrieve data of last month
+
+                String startDateStr = df.format(cal.getTime());
+                String todayDateStr = df.format(today);
+                System.out.println("startDate: " + startDateStr);
+                System.out.println("todayDate: " + todayDateStr);
+
+                int limit = 200;
+                String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27"
+                        + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit="+limit
+                        +"&$offset="+offset;
+                offset +=200;
+                new GetJSON(getActivity()) {
+                    @Override
+                    protected void onPostExecute(String result) {
+                        new ParseJSON() {
+                            @Override
+                            protected void onPostExecute(Crime[] crimes) {
+                                float[] hsv = new float[3];
+                                DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", java.util.Locale.getDefault());
+
+                                try {
+                                    int crimesLength = crimes.length;
+
+                                    for (Crime crime : crimes) {
+                                        Color.colorToHSV(districtsColor.get(crime.getPdDistrict()), hsv);
+
+                                        googleMap.addMarker(new MarkerOptions()
+                                                        .position(new LatLng(crime.getLocation().getLatitude(), crime.getLocation().getLongitude()))
+                                                        .title("District\t\t\t\t: " + crime.getPdDistrict()
+                                                                + "\nDescription\t: " + crime.getDescript())
+                                                        .icon(BitmapDescriptorFactory.defaultMarker(hsv[0]))
+                                                        .snippet("Inc Number\t:" + crime.getIncidntNumber()
+                                                                + "\nCategory\t\t\t: " + crime.getCategory()
+                                                                + "\nDate\t\t\t\t\t: " + df.format(crime.getDatetime()))
+                                                        .alpha(.8f)
+                                        );
+
+                                        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                                            @Override
+                                            public void onInfoWindowClick(Marker marker) {
+                                                boolean showNoInternetMessage = false;
+                                                ConnectivityManager conMgr = (ConnectivityManager) getActivity()
+                                                        .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+                                                NetworkInfo i = conMgr.getActiveNetworkInfo();
+                                                if (i == null) {
+                                                    showNoInternetMessage = true;
+                                                } else {
+                                                    if (!i.isConnected())
+                                                        showNoInternetMessage = true;
+                                                    if (!i.isAvailable())
+                                                        showNoInternetMessage = true;
+                                                }
+                                                if (showNoInternetMessage) {
+                                                    Intent intent = new Intent(getActivity(), MessageActivity.class);
+                                                    intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
+                                                    startActivity(intent);
+                                                } else {
+                                                    Intent intent = new Intent(getActivity(), DetailActivity.class);
+                                                    intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
+                                                    startActivity(intent);
+                                                }
+                                            }
+                                        });
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        }.execute(result);
+                        super.onPostExecute(result);
+                    }
+                }.execute(urlStr);
+            }
+        });
     }
 }
