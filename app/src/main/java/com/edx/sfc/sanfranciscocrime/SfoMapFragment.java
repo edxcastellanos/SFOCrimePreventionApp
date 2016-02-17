@@ -18,16 +18,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.edx.sfc.objects.Crime;
-import com.edx.sfc.util.GetJSON;
-import com.edx.sfc.util.ParseJSON;
+import com.edx.sfc.util.GetCrimes;
+import com.edx.sfc.util.GetMarkerOptions;
 import com.edx.sfc.util.ValueComparator;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -41,9 +39,28 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
+    private String startDateStr, todayDateStr;
+    private int limit, offset;
+    private static int crimesLength;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.map_fragment, container, false);
+
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        Date today = new Date();
+
+        java.util.Calendar cal = GregorianCalendar.getInstance();
+        cal.setTime(today);
+        cal.add(GregorianCalendar.DAY_OF_YEAR, -30);//retrieve data of last month
+
+        startDateStr = df.format(cal.getTime());
+        todayDateStr = df.format(today);
+        System.out.println("startDate: " + startDateStr);
+        System.out.println("todayDate: " + todayDateStr);
+
+        limit = 200;
+        offset = 0;
 
         MapFragment mapFragment = new MapFragment();
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
@@ -60,6 +77,7 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     public static HashMap<String, Integer> getMostCrimesDistrictTable(Crime[] crimes) {
+        crimesLength = crimes.length;
         HashMap<String, Integer> distinctDistricts = new HashMap<>();
         try {
             for (Crime crime : crimes) {
@@ -122,157 +140,104 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 12);
         googleMap.animateCamera(cameraUpdate);
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        Date today = new Date();
-
-        java.util.Calendar cal = GregorianCalendar.getInstance();
-        cal.setTime(today);
-        cal.add(GregorianCalendar.DAY_OF_YEAR, -30);//retrieve data of last month
-
-        String startDateStr = df.format(cal.getTime());
-        String todayDateStr = df.format(today);
-        System.out.println("startDate: " + startDateStr);
-        System.out.println("todayDate: " + todayDateStr);
-
         String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27"
                 + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=50000";
 
-        new GetJSON(getActivity()) {
+        new GetCrimes(getActivity()) {
             @Override
-            protected void onPostExecute(String result) {
-                new ParseJSON() {
-                    @Override
-                    protected void onPostExecute(Crime[] crimes) {
-                        Map<String, Integer> mostCrimesDistrictMap = getMostCrimesDistrictTable(crimes);
+            protected void onPostExecute(Crime[] crimes) {
+                Map<String, Integer> mostCrimesDistrictMap = getMostCrimesDistrictTable(crimes);
 
-                        HashMap<String, Integer> districtsColor = new HashMap<>();
+                HashMap<String, Integer> districtsColor = new HashMap<>();
 
-                        int danger = 1;
-                        mostCrimesDistrictMap = sortByValue(mostCrimesDistrictMap);
-                        for (String key : mostCrimesDistrictMap.keySet()) {
-                            switch (danger) {
-                                case 1:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger1));
-                                    break;
-                                case 2:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger2));
-                                    break;
-                                case 3:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger3));
-                                    break;
-                                case 4:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger4));
-                                    break;
-                                case 5:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger5));
-                                    break;
-                                case 6:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger6));
-                                    break;
-                                case 7:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger7));
-                                    break;
-                                case 8:
-                                default:
-                                    districtsColor.put(key, getResources().getColor(R.color.Danger8));
-                                    break;
-                            }
-                            danger++;
-                        }
-                        PopulateMap(googleMap, districtsColor);
+                int danger = 1;
+                mostCrimesDistrictMap = sortByValue(mostCrimesDistrictMap);
+                for (String key : mostCrimesDistrictMap.keySet()) {
+                    switch (danger) {
+                        case 1:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger1));
+                            break;
+                        case 2:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger2));
+                            break;
+                        case 3:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger3));
+                            break;
+                        case 4:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger4));
+                            break;
+                        case 5:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger5));
+                            break;
+                        case 6:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger6));
+                            break;
+                        case 7:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger7));
+                            break;
+                        case 8:
+                        default:
+                            districtsColor.put(key, getResources().getColor(R.color.Danger8));
+                            break;
                     }
-                }.execute(result);
-                super.onPostExecute(result);
+                    danger++;
+                }
+                PopulateMap(googleMap, districtsColor);
+                super.onPostExecute(crimes);
             }
         }.execute(urlStr);
     }
 
     public void PopulateMap(final GoogleMap googleMap, final HashMap<String, Integer> districtsColor) {
-        googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            int offset=0;
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-                Date today = new Date();
+        String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27"
+                + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=" + limit
+                + "&$offset=" + offset;
 
-                java.util.Calendar cal = GregorianCalendar.getInstance();
-                cal.setTime(today);
-                cal.add(GregorianCalendar.DAY_OF_YEAR, -30);//retrieve data of last month
+        while (offset < crimesLength) {
+            new GetMarkerOptions(getActivity(), districtsColor) {
+                @Override
+                protected void onPostExecute(MarkerOptions[] crimesMarkers) {
+                    try {
+                        for (MarkerOptions crimeMarker : crimesMarkers) {
 
-                String startDateStr = df.format(cal.getTime());
-                String todayDateStr = df.format(today);
-                System.out.println("startDate: " + startDateStr);
-                System.out.println("todayDate: " + todayDateStr);
+                            //This has to be in the main thread, but the previous steps can be in an Async Task.
+                            googleMap.addMarker(crimeMarker);
 
-                int limit = 200;
-                String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27"
-                        + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit="+limit
-                        +"&$offset="+offset;
-                offset +=200;
-                new GetJSON(getActivity()) {
-                    @Override
-                    protected void onPostExecute(String result) {
-                        new ParseJSON() {
-                            @Override
-                            protected void onPostExecute(Crime[] crimes) {
-                                float[] hsv = new float[3];
-                                DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss", java.util.Locale.getDefault());
+                            googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                                @Override
+                                public void onInfoWindowClick(Marker marker) {
+                                    boolean showNoInternetMessage = false;
+                                    ConnectivityManager conMgr = (ConnectivityManager) getActivity()
+                                            .getSystemService(Context.CONNECTIVITY_SERVICE);
 
-                                try {
-                                    int crimesLength = crimes.length;
-
-                                    for (Crime crime : crimes) {
-                                        Color.colorToHSV(districtsColor.get(crime.getPdDistrict()), hsv);
-
-                                        googleMap.addMarker(new MarkerOptions()
-                                                        .position(new LatLng(crime.getLocation().getLatitude(), crime.getLocation().getLongitude()))
-                                                        .title("District\t\t\t\t: " + crime.getPdDistrict()
-                                                                + "\nDescription\t: " + crime.getDescript())
-                                                        .icon(BitmapDescriptorFactory.defaultMarker(hsv[0]))
-                                                        .snippet("Inc Number\t:" + crime.getIncidntNumber()
-                                                                + "\nCategory\t\t\t: " + crime.getCategory()
-                                                                + "\nDate\t\t\t\t\t: " + df.format(crime.getDatetime()))
-                                                        .alpha(.8f)
-                                        );
-
-                                        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-                                            @Override
-                                            public void onInfoWindowClick(Marker marker) {
-                                                boolean showNoInternetMessage = false;
-                                                ConnectivityManager conMgr = (ConnectivityManager) getActivity()
-                                                        .getSystemService(Context.CONNECTIVITY_SERVICE);
-
-                                                NetworkInfo i = conMgr.getActiveNetworkInfo();
-                                                if (i == null) {
-                                                    showNoInternetMessage = true;
-                                                } else {
-                                                    if (!i.isConnected())
-                                                        showNoInternetMessage = true;
-                                                    if (!i.isAvailable())
-                                                        showNoInternetMessage = true;
-                                                }
-                                                if (showNoInternetMessage) {
-                                                    Intent intent = new Intent(getActivity(), MessageActivity.class);
-                                                    intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
-                                                    startActivity(intent);
-                                                } else {
-                                                    Intent intent = new Intent(getActivity(), DetailActivity.class);
-                                                    intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
-                                                    startActivity(intent);
-                                                }
-                                            }
-                                        });
+                                    NetworkInfo i = conMgr.getActiveNetworkInfo();
+                                    if (i == null) {
+                                        showNoInternetMessage = true;
+                                    } else {
+                                        if (!i.isConnected())
+                                            showNoInternetMessage = true;
+                                        if (!i.isAvailable())
+                                            showNoInternetMessage = true;
                                     }
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                    if (showNoInternetMessage) {
+                                        Intent intent = new Intent(getActivity(), MessageActivity.class);
+                                        intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
+                                        startActivity(intent);
+                                    } else {
+                                        Intent intent = new Intent(getActivity(), DetailActivity.class);
+                                        intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
+                                        startActivity(intent);
+                                    }
                                 }
-
-                            }
-                        }.execute(result);
-                        super.onPostExecute(result);
+                            });
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }.execute(urlStr);
-            }
-        });
+                    super.onPostExecute(crimesMarkers);
+                }
+            }.execute(urlStr);
+        }
+        offset += 200;
     }
 }

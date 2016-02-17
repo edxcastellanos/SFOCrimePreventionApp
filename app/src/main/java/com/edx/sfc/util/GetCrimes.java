@@ -4,6 +4,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.edx.sfc.objects.Crime;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -11,17 +13,38 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class GetJSON extends AsyncTask<String, Void, String> {
+public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
     private ProgressDialog progressDialog;
     private Context context;
 
-    public GetJSON(Context context) {
+    public GetCrimes(Context context) {
         this.context = context;
     }
 
     @Override
-    protected String doInBackground(String... url) {
-        String urlStr = url[0];
+    protected Crime[] doInBackground(String... url) {
+        return getCrimes(url[0]);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Loading data...");
+        progressDialog.show();
+    }
+
+    @Override
+    protected void onPostExecute(Crime[] result) {
+        super.onPostExecute(result);
+        progressDialog.dismiss();
+    }
+
+
+    @Override
+    protected void onProgressUpdate(Void... values) {
+    }
+
+    public static Crime[] getCrimes(String urlStr){
         String jsonStr = "";
         URL url_;
 
@@ -43,25 +66,8 @@ public class GetJSON extends AsyncTask<String, Void, String> {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Crime[] crimes = JSONReaderSFC.readSFCCrimes(jsonStr);
 
-        return jsonStr;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading data...");
-        progressDialog.show();
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        super.onPostExecute(result);
-        progressDialog.dismiss();
-    }
-
-
-    @Override
-    protected void onProgressUpdate(Void... values) {
+        return crimes;
     }
 }
