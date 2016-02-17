@@ -44,7 +44,7 @@ public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
     protected void onProgressUpdate(Void... values) {
     }
 
-    public static Crime[] getCrimes(String urlStr){
+    public static Crime[] getCrimes(String urlStr) {
         String jsonStr = "";
         URL url_;
 
@@ -66,8 +66,6 @@ public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Crime[] crimes = JSONReaderSFC.readSFCCrimes(jsonStr);
-
-        return crimes;
+        return JSONReaderSFC.readSFCCrimes(jsonStr);
     }
 }
