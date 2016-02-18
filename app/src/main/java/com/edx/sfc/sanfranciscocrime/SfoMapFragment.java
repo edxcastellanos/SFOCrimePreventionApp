@@ -9,7 +9,6 @@ import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +16,9 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.edx.sfc.objects.Crime;
-import com.edx.sfc.util.GetCrimes;
+import com.edx.sfc.util.GetDistrictColors;
 import com.edx.sfc.util.GetMarkerOptions;
-import com.edx.sfc.util.ValueComparator;
+import com.edx.sfc.util.GetNumIncidents;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,13 +33,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
     private String startDateStr, todayDateStr;
     private int limit, offset;
-    private static int crimesLength;
+    private int numIncidents;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -68,32 +64,6 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
         mapFragment.getMapAsync(this);
 
         return v;
-    }
-
-    public static TreeMap<String, Integer> sortByValue(Map<String, Integer> unsorted) {
-        TreeMap<String, Integer> sorted = new TreeMap<>(new ValueComparator(unsorted));
-        sorted.putAll(unsorted);
-        return sorted;
-    }
-
-    public static HashMap<String, Integer> getMostCrimesDistrictTable(Crime[] crimes) {
-        crimesLength = crimes.length;
-        HashMap<String, Integer> distinctDistricts = new HashMap<>();
-        try {
-            for (Crime crime : crimes) {
-                if (!distinctDistricts.containsKey(crime.getPdDistrict())) {
-                    distinctDistricts.put(crime.getPdDistrict(), 1);
-                } else {
-                    int newValue = distinctDistricts.get(crime.getPdDistrict()) + 1;
-                    distinctDistricts.put(crime.getPdDistrict(), newValue);
-                }
-            }
-        } catch (NullPointerException npe) {
-            Log.i("Exception: ", npe.getMessage());
-        }
-        Log.i("Districts", distinctDistricts.toString());
-
-        return distinctDistricts;
     }
 
     @Override
@@ -143,47 +113,26 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
         String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$where=date%20between%20%27"
                 + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=50000";
 
-        new GetCrimes(getActivity()) {
+        new GetDistrictColors(getActivity()) {
             @Override
-            protected void onPostExecute(Crime[] crimes) {
-                Map<String, Integer> mostCrimesDistrictMap = getMostCrimesDistrictTable(crimes);
+            protected void onPostExecute(final HashMap<String, Integer> districtColors) {
+                String urlStr = "https://data.sfgov.org/resource/cuks-n6tp.json?$query=SELECT%20COUNT%20(incidntnum)%20where%20date%20between%20%27"
+                        + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27";
 
-                HashMap<String, Integer> districtsColor = new HashMap<>();
+                new GetNumIncidents(getActivity()) {
+                    @Override
+                    protected void onPostExecute(Integer incidentNumber) {
+                        numIncidents = incidentNumber;
+                        super.onPostExecute(incidentNumber);
 
-                int danger = 1;
-                mostCrimesDistrictMap = sortByValue(mostCrimesDistrictMap);
-                for (String key : mostCrimesDistrictMap.keySet()) {
-                    switch (danger) {
-                        case 1:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger1));
-                            break;
-                        case 2:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger2));
-                            break;
-                        case 3:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger3));
-                            break;
-                        case 4:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger4));
-                            break;
-                        case 5:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger5));
-                            break;
-                        case 6:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger6));
-                            break;
-                        case 7:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger7));
-                            break;
-                        case 8:
-                        default:
-                            districtsColor.put(key, getResources().getColor(R.color.Danger8));
-                            break;
+                        while (offset < incidentNumber) {
+                            PopulateMap(googleMap, districtColors);
+                            offset += 200;
+                        }
+
                     }
-                    danger++;
-                }
-                PopulateMap(googleMap, districtsColor);
-                super.onPostExecute(crimes);
+                }.execute(urlStr);
+                super.onPostExecute(districtColors);
             }
         }.execute(urlStr);
     }
@@ -193,51 +142,48 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                 + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=" + limit
                 + "&$offset=" + offset;
 
-        while (offset < crimesLength) {
-            new GetMarkerOptions(getActivity(), districtsColor) {
-                @Override
-                protected void onPostExecute(MarkerOptions[] crimesMarkers) {
-                    try {
-                        for (MarkerOptions crimeMarker : crimesMarkers) {
+        new GetMarkerOptions(getActivity(), districtsColor) {
+            @Override
+            protected void onPostExecute(MarkerOptions[] crimesMarkers) {
+                try {
+                    for (MarkerOptions crimeMarker : crimesMarkers) {
 
-                            //This has to be in the main thread, but the previous steps can be in an Async Task.
-                            googleMap.addMarker(crimeMarker);
+                        //This has to be in the main thread, but the previous steps can be in an Async Task.
+                        googleMap.addMarker(crimeMarker);
 
-                            googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-                                @Override
-                                public void onInfoWindowClick(Marker marker) {
-                                    boolean showNoInternetMessage = false;
-                                    ConnectivityManager conMgr = (ConnectivityManager) getActivity()
-                                            .getSystemService(Context.CONNECTIVITY_SERVICE);
+                        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                            @Override
+                            public void onInfoWindowClick(Marker marker) {
+                                boolean showNoInternetMessage = false;
+                                ConnectivityManager conMgr = (ConnectivityManager) getActivity()
+                                        .getSystemService(Context.CONNECTIVITY_SERVICE);
 
-                                    NetworkInfo i = conMgr.getActiveNetworkInfo();
-                                    if (i == null) {
+                                NetworkInfo i = conMgr.getActiveNetworkInfo();
+                                if (i == null) {
+                                    showNoInternetMessage = true;
+                                } else {
+                                    if (!i.isConnected())
                                         showNoInternetMessage = true;
-                                    } else {
-                                        if (!i.isConnected())
-                                            showNoInternetMessage = true;
-                                        if (!i.isAvailable())
-                                            showNoInternetMessage = true;
-                                    }
-                                    if (showNoInternetMessage) {
-                                        Intent intent = new Intent(getActivity(), MessageActivity.class);
-                                        intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
-                                        startActivity(intent);
-                                    } else {
-                                        Intent intent = new Intent(getActivity(), DetailActivity.class);
-                                        intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
-                                        startActivity(intent);
-                                    }
+                                    if (!i.isAvailable())
+                                        showNoInternetMessage = true;
                                 }
-                            });
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                                if (showNoInternetMessage) {
+                                    Intent intent = new Intent(getActivity(), MessageActivity.class);
+                                    intent.putExtra("message", "Please turn your WiFi or your mobile data plan ON (Carrier charges may apply");
+                                    startActivity(intent);
+                                } else {
+                                    Intent intent = new Intent(getActivity(), DetailActivity.class);
+                                    intent.putExtra("incidntNumber", marker.getSnippet().split("\n")[0].split(":")[1]);
+                                    startActivity(intent);
+                                }
+                            }
+                        });
                     }
-                    super.onPostExecute(crimesMarkers);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }.execute(urlStr);
-        }
-        offset += 200;
+                super.onPostExecute(crimesMarkers);
+            }
+        }.execute(urlStr);
     }
 }

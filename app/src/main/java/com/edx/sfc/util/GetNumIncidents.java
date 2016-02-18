@@ -4,8 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.edx.sfc.objects.Crime;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -13,30 +11,30 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
+public class GetNumIncidents extends AsyncTask<String, Void, Integer> {
     private ProgressDialog progressDialog;
     private Context context;
 
-    public GetCrimes(Context context) {
+    public GetNumIncidents(Context context) {
         this.context = context;
     }
 
     @Override
-    protected Crime[] doInBackground(String... url) {
-        return getCrimes(url[0]);
+    protected Integer doInBackground(String... url) {
+        return getNumberIncidents(url[0]);
     }
 
     @Override
     protected void onPreExecute() {
         progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading data...");
+        progressDialog.setMessage("Loading number of incidents...");
         progressDialog.show();
     }
 
     @Override
-    protected void onPostExecute(Crime[] result) {
-        progressDialog.dismiss();
+    protected void onPostExecute(Integer result) {
         super.onPostExecute(result);
+        progressDialog.dismiss();
     }
 
 
@@ -44,7 +42,7 @@ public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
     protected void onProgressUpdate(Void... values) {
     }
 
-    public static Crime[] getCrimes(String urlStr) {
+    public static int getNumberIncidents(String urlStr) {
         String jsonStr = "";
         URL url_;
 
@@ -66,6 +64,6 @@ public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return JSONReaderSFC.readSFCCrimes(jsonStr);
+        return JSONReaderSFC.readJSONIncidentNumber(jsonStr);
     }
 }

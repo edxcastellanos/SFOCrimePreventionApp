@@ -57,4 +57,18 @@ public class JSONReaderSFC {
         }
         return crimes;
     }
+
+    public static int readJSONIncidentNumber(String jsonStr) {
+        int incidentNumber = 0;
+        try {
+            JSONArray jsonArray = new JSONArray(jsonStr);
+            JSONObject jsonObject = jsonArray.getJSONObject(0);
+            incidentNumber = jsonObject.getInt("COUNT_incidntnum");
+        } catch (JSONException e) {
+            Log.i("Error retrieving number", e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return incidentNumber;
+    }
 }

@@ -34,6 +34,7 @@ public class DetailActivity extends Activity {
                         android.R.layout.simple_list_item_1, crimeArrayList);
 
                 listViewCity.setAdapter(adaptador);
+                super.onPostExecute(crimes);
             }
         }.execute(urlStr);
 
