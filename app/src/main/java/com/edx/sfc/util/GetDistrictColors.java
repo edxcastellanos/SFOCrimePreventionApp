@@ -73,7 +73,7 @@ public class GetDistrictColors extends AsyncTask<String, Void, HashMap<String, I
     @Override
     protected void onPreExecute() {
         progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading data...");
+        progressDialog.setMessage("Loading District with more crimes...");
         progressDialog.show();
     }
 

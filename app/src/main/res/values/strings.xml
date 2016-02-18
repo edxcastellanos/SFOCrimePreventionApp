@@ -15,4 +15,5 @@
     <string name="DayWeek">Day Week\t\t\t:\u0020</string>
     <string name="Resolution">Resolution\t\t:\u0020</string>
     <string name="splashImage">Splash Image\t\t:\u0020</string>
+    <string name="loadingMarkers">Loading Markers&#8230;</string>
 </resources>

@@ -1,7 +1,5 @@
 package com.edx.sfc.util;
 
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
 
@@ -15,13 +13,10 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
 public class GetMarkerOptions extends AsyncTask<String, Void, MarkerOptions[]> {
-    private ProgressDialog progressDialog;
-    private Context context;
     private HashMap<String, Integer> districtsColor;
     private DateFormat df;
 
-    public GetMarkerOptions(Context context, HashMap<String, Integer> districtsColor) {
-        this.context = context;
+    public GetMarkerOptions(HashMap<String, Integer> districtsColor) {
         this.districtsColor = districtsColor;
         df = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
     }
@@ -51,14 +46,10 @@ public class GetMarkerOptions extends AsyncTask<String, Void, MarkerOptions[]> {
 
     @Override
     protected void onPreExecute() {
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading data...");
-        progressDialog.show();
     }
 
     @Override
     protected void onPostExecute(MarkerOptions[] result) {
-        progressDialog.dismiss();
     }
 
 

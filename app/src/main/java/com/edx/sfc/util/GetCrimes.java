@@ -29,7 +29,7 @@ public class GetCrimes extends AsyncTask<String, Void, Crime[]> {
     @Override
     protected void onPreExecute() {
         progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading data...");
+        progressDialog.setMessage("Loading crimes...");
         progressDialog.show();
     }
 

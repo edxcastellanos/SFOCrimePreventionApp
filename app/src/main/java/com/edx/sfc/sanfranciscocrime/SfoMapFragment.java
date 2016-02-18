@@ -36,7 +36,7 @@ import java.util.HashMap;
 
 public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
     private String startDateStr, todayDateStr;
-    private int limit, offset;
+    private int limit, offset, loadOffset;
     private int numIncidents;
 
     @Override
@@ -55,7 +55,7 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
         System.out.println("startDate: " + startDateStr);
         System.out.println("todayDate: " + todayDateStr);
 
-        limit = 200;
+        limit = 20;
         offset = 0;
 
         MapFragment mapFragment = new MapFragment();
@@ -125,11 +125,14 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                         numIncidents = incidentNumber;
                         super.onPostExecute(incidentNumber);
 
-                        while (offset < incidentNumber) {
-                            PopulateMap(googleMap, districtColors);
-                            offset += 200;
-                        }
+                        TextView tvLoadingMarkers = (TextView) getActivity().findViewById(R.id.tvLoadingMarkers);
 
+                        while (offset < numIncidents) {
+                            tvLoadingMarkers.setVisibility(View.VISIBLE);
+                            PopulateMap(googleMap, districtColors);
+                            offset += limit;
+                        }
+                        loadOffset = offset;
                     }
                 }.execute(urlStr);
                 super.onPostExecute(districtColors);
@@ -142,7 +145,7 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                 + startDateStr + "T00:00:00%27%20and%20%27" + todayDateStr + "T23:59:59%27&$limit=" + limit
                 + "&$offset=" + offset;
 
-        new GetMarkerOptions(getActivity(), districtsColor) {
+        new GetMarkerOptions(districtsColor) {
             @Override
             protected void onPostExecute(MarkerOptions[] crimesMarkers) {
                 try {
@@ -183,6 +186,13 @@ public class SfoMapFragment extends Fragment implements OnMapReadyCallback {
                     e.printStackTrace();
                 }
                 super.onPostExecute(crimesMarkers);
+
+                if (loadOffset > limit) {
+                    loadOffset -= limit;
+                } else {
+                    TextView tvLoadingMarkers = (TextView) getActivity().findViewById(R.id.tvLoadingMarkers);
+                    tvLoadingMarkers.setVisibility(View.INVISIBLE);
+                }
             }
         }.execute(urlStr);
     }

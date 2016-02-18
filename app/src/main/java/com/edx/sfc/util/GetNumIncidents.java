@@ -27,7 +27,7 @@ public class GetNumIncidents extends AsyncTask<String, Void, Integer> {
     @Override
     protected void onPreExecute() {
         progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading number of incidents...");
+        progressDialog.setMessage("Loading number of crimes...");
         progressDialog.show();
     }
 
